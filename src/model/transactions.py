@@ -22,16 +22,36 @@ class Transactions(list):
 
 class MonthTransactions(Transactions):
 
+    def __init__(self, year, month, l=None, latest_month_transactions=None):
+        self.month = month
+        self.year = year
+        self.latest_month_transactions = latest_month_transactions
+        self.summary = None
+        super(MonthTransactions, self).__init__(l or [])
+
+    def set_latest_month_transactions(self, latest_month_transactions):
+        self.latest_month_transactions = latest_month_transactions
+
+    def get_year_month_as_string(self):
+        return f'{self.year}-{self.month}'
+
     def get_sale_transactions(self) -> List[SaleTransaction]:
         return [x for x in self if type(x) == SaleTransaction]
 
     def get_summary(self) -> MonthTransactionsSummary:
-        value_sold = sum([x.transaction_value for x in self.get_sold()])
-        value_bought = sum([x.transaction_value for x in self.get_bought()])
-        quantity_bought = sum([x.quantity for x in self.get_bought()])
-        quantity_sold = sum([x.quantity for x in self.get_sold()])
-        buying_value_of_sold_stocks = sum([x.get_total_buying_price() for x in self.get_sale_transactions()])
-        buying_quantity_of_sold_stocks = sum([x.get_total_buying_quantity() for x in self.get_sale_transactions()])
-        profit = sum([x.get_profit() for x in self.get_sale_transactions()])
-        return MonthTransactionsSummary(quantity_bought, quantity_sold, value_bought, value_sold,
-                                        buying_value_of_sold_stocks, buying_quantity_of_sold_stocks, profit)
+        if self.summary is None:
+            self.summary = MonthTransactionsSummary(self)
+        return self.summary
+
+    def should_pay_ir(self):
+        summary = self.get_summary()
+        if summary.value_sold >= 20000 and summary.ir > 0:
+            return True
+
+    def has_profit(self):
+        summary = self.get_summary()
+        if summary.profit > 0:
+            return True
+
+    def has_loss(self):
+        return not self.has_profit()

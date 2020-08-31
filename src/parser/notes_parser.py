@@ -147,8 +147,8 @@ def list_files(path):
     return files
 
 
-def parse_all_files():
-    files = list_files('/home/andregarcia/Documents/investimentos/clear_notas_negociacao/')
+def parse_all_files(path):
+    files = list_files(path)
     parsed_files = []
     for file in files:
         print(f"Processing file {file}")
